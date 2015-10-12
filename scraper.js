@@ -1,9 +1,15 @@
 var cheerio = require("cheerio");
 var qioHttp = require('q-io/http');
 var fs = require('fs');
+var Q = require('q');
 
-var game_url = "http://www.nhl.com/ice/schedulebyseason.htm";
-var team_url = "http://www.nhl.com/ice/teams.htm";
+var GAME_URL = "http://www.nhl.com/ice/schedulebyseason.htm";
+var TEAM_URL = "http://www.nhl.com/ice/teams.htm";
+
+// Fetch Game Modes
+var ALL_GAMES = 0;
+var UNPLAYED_GAMES = 1;
+var PLAYED_GAMES = 2;
 
 var fetchData = function (url) {
     return qioHttp.read(url);
@@ -33,35 +39,59 @@ var teamsToJSON = function ($) {
     return teams;
 };
 
-var gamesToJSON = function ($) {
+var gamesToJSON = function ($, mode) {
+    mode = (mode) ? mode : 0;
     var games = [];
     $('#fullPage .contentBlock table.schedTbl tbody').find('tr').each(function(i, r) {
         var cols = $(r).find('td');
         if (cols.length > 1) {
-            games.push({
-                date: $(cols[0]).find('.skedStartDateSite').text().trim(),
-                away_team: $(cols[1]).find('.teamName a')[0].attribs.rel.toLowerCase(),
-                home_team: $(cols[2]).find('.teamName a')[0].attribs.rel.toLowerCase(),
-                time: $(cols[3]).find('.skedStartTimeEST').text().trim()
-            });
+
+            var game = {};
+            game.date = $(cols[0]).find('.skedStartDateSite').text().trim();
+            game.away_team = $(cols[1]).find('.teamName a')[0].attribs.rel.toLowerCase();
+            game.home_team = $(cols[2]).find('.teamName a')[0].attribs.rel.toLowerCase();
+            game.time = $(cols[3]).find('.skedStartTimeEST').text().trim();
+
+            var tvInfo = $(cols[4]).text().trim().split('\n');
+
+            if (tvInfo.length > 1 && tvInfo[0] == 'FINAL: ' && (mode === 0 || mode === 2)) {
+                game.away_score = parseInt(tvInfo[2].match(/(([1-9][0-9]+)|([0-9]))/)[1]);
+                game.home_score = parseInt(tvInfo[3].match(/(([1-9][0-9]+)|([0-9]))/)[1]);
+                games.push(game);
+            } else if (mode === 0 || mode === 1) {
+                games.push(game);
+            }
         }
     });
 
     return games;
 };
 
-fetchData(game_url)
-    .then(objToString)
-    .then(cheerio.load)
-    .then(gamesToJSON)
-    .then(function (data) { writeToFile('games.json', data); })
-    .then(null, console.error)
-    .done();
+var getDataFromURL = function(url, parseFunction, outputFile) {
+    var q = Q.defer();
+    fetchData(url)
+        .then(objToString)
+        .then(cheerio.load)
+        .then(parseFunction)
+        .then(function (data) {
+            if (outputFile) {
+                writeToFile(outputFile, data);
+            } else {
+                return data;
+            }
+        })
+        .then(null, console.error)
+        .done(q.resolve, q.reject);
+    return q.promise;
+}
 
-fetchData(team_url)
-    .then(objToString)
-    .then(cheerio.load)
-    .then(teamsToJSON)
-    .then(function (data) { writeToFile('teams.json', data); })
-    .then(null, console.error)
-    .done();
+
+module.exports.getTeams = function(outputFile) {
+    return getDataFromURL(TEAM_URL, teamsToJSON, outputFile);
+};
+
+module.exports.getGames = function(outputFile, mode) {
+    return getDataFromURL(GAME_URL, function($) {
+        return gamesToJSON($, mode);
+    }, outputFile);
+};
