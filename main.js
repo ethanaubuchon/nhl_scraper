@@ -15,28 +15,28 @@ switch (action) {
     if (outfile) {
       scraper.getTeams(outfile);
     } else {
-      scraper.getTeams().then(console.log);
+      scraper.getTeams().then(JSON.stringify).then(console.log);
     }
     break;
   case 'schedule':
     if (outfile) {
       scraper.getGames(outfile);
     } else {
-      scraper.getGames(null, 0).then(console.log);
+      scraper.getGames(null, 0).then(JSON.stringify).then(console.log);
     }
     break;
   case 'unplayed':
     if (outfile) {
       scraper.getGames(outfile);
     } else {
-      scraper.getGames(null, 1).then(console.log);
+      scraper.getGames(null, 1).then(JSON.stringify).then(console.log);
     }
     break;
   case 'scores':
     if (outfile) {
       scraper.getGames(outfile);
     } else {
-      scraper.getGames(null, 2).then(console.log);
+      scraper.getGames(null, 2).then(JSON.stringify).then(console.log);
     }
     break;
   default:
