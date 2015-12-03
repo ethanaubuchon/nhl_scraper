@@ -5,6 +5,7 @@ var Q = require('q');
 
 var GAME_URL = "http://www.nhl.com/ice/schedulebyseason.htm";
 var TEAM_URL = "http://www.nhl.com/ice/teams.htm";
+var PLAYER_LOG_URL_BASE = "http://www.nhl.com/ice/player.htm?view=log&id=";
 
 // Fetch Game Modes
 var ALL_GAMES = 0;
@@ -37,6 +38,35 @@ var teamsToJSON = function ($) {
         });
     });
     return teams;
+};
+
+var playerLogToJSON = function ($) {
+    var games = [];
+	$('#wideCol .contentBlock table.playerStats').find('tr').each(function (i, r) {
+		var cols = $(r).find('td');
+		if (cols.length > 1) {
+			
+			var game = {};
+			game.date = $(cols[0]).find('.undMe').text().trim();
+			var teams = $(cols[0]).text().trim().split('\n')[2].split(' @ ');
+			game.away_team = teams[0];
+		    game.home_team = teams[1];
+			game.decision = $(cols[1]).text().trim();
+			game.goals_against = $(cols[2]).text().trim();
+			game.shots_against = $(cols[3]).text().trim();
+			game.saves = $(cols[4]).text().trim();
+			game.save_percent = $(cols[5]).text().trim();
+			game.shutout = $(cols[6]).text().trim();
+			game.pim = $(cols[7]).text().trim();
+			game.time_on_ice = $(cols[8]).text().trim();
+			game.even_strength_goals_against = $(cols[9]).text().trim();
+			game.powerplayer_goals_against = $(cols[10]).text().trim();
+			game.shorthanded_goals_against = $(cols[11]).text().trim();
+		    games.push(game);
+		}
+	});
+	
+	return games;  
 };
 
 var gamesToJSON = function ($, mode) {
@@ -90,6 +120,11 @@ module.exports.getTeams = function(outputFile) {
     return getDataFromURL(TEAM_URL, teamsToJSON, outputFile);
 };
 
+module.exports.getPlayerGameLog = function(outputFile, playerId) {
+    return getDataFromURL(PLAYER_LOG_URL_BASE + playerId, function($) {
+        return playerLogToJSON($);
+    }, outputFile);
+};
 module.exports.getGames = function(outputFile, mode) {
     return getDataFromURL(GAME_URL, function($) {
         return gamesToJSON($, mode);
