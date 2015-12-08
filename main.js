@@ -10,10 +10,10 @@ if (outfileIndex >= 0) {
 	var outfile = args[outfileIndex + 1];
 }
 
-var playerIndex = args.indexOf('-p');
-playerIndex = (playerIndex < 0) ? args.indexOf('--playerId') : playerIndex;
-if (playerIndex >= 0)
-	var playerId = args[playerIndex + 1];
+var paramIndex = args.indexOf('-p');
+paramIndex = (paramIndex < 0) ? args.indexOf('--param') : paramIndex;
+if (paramIndex >= 0)
+	var extraParam = args[paramIndex + 1];
 
 switch (action) { 
 	case 'teams':
@@ -50,7 +50,15 @@ switch (action) {
 		} else  if (playerId){
 			scraper.getPlayerGameLog(null, playerId).then(JSON.stringify).then(console.log);
 		}
-		break;
+        break;
+    case 'teamlog':
+        if (outfile) {
+            scraper.getTeamLog(outfile, extraParam);
+        }
+        else {
+            scraper.getTeamLog(null, extraParam).then(JSON.stringify).then(console.log);
+        }
+        break;
 	default:
 		console.log('Invalid command');
 }
