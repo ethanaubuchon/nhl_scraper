@@ -17,7 +17,7 @@ var fetchData = function (url) {
     return qioHttp.read(url);
 };
 
-var objToString = function(obj) {
+var objToString = function (obj) {
     return obj.toString();
 };
 
@@ -69,38 +69,39 @@ var populateSkaterFromLog = function($, game, cols) {
     game.time_on_ice = $(cols[11]).text().trim();
     game.faceoff_percent = $(cols[12]).text().trim();
 };
-var playerLogToJSON = function ($) {
+
+var playerLogToJSON = function($) {
     var games = [];
     var table = $('#wideCol .contentBlock table.playerStats');
     var firstDataColumnHeader = $($(table.find('thead').find('tr')[0]).find('th')[1]).text().trim();
 
-    table.find('tr').each(function (i, r) {
-		var cols = $(r).find('td');
-		if (cols.length > 1) {
-			
-			var game = {};
-			game.date = $(cols[0]).find('.undMe').text().trim();
-			var teams = $(cols[0]).text().trim().split('\n')[2].split(' @ ');
-			game.away_team = teams[0];
-		    game.home_team = teams[1];
-		    if (firstDataColumnHeader == 'G') {
-		        populateSkaterFromLog($, game, cols);
-		    } else {
-		        populateGoalieFromLog($, game, cols);
-		    }
-		    games.push(game);
-		}
-	});
-	
-	return games;  
-};
-
-var teamLogToJSON = function ($) {
-    var games = [];
-    $('#twoColSpan .tieUpWrap .tieUp table.data').find('tr.rwEven,.rwOdd').each(function (i, r) {
+    table.find('tr').each(function(i, r) {
         var cols = $(r).find('td');
         if (cols.length > 1) {
-            
+
+            var game = {};
+            game.date = $(cols[0]).find('.undMe').text().trim();
+            var teams = $(cols[0]).text().trim().split('\n')[2].split(' @ ');
+            game.away_team = teams[0];
+            game.home_team = teams[1];
+            if (firstDataColumnHeader == 'G') {
+                populateSkaterFromLog($, game, cols);
+            } else {
+                populateGoalieFromLog($, game, cols);
+            }
+            games.push(game);
+        }
+    });
+
+    return games;
+};
+
+var teamLogToJSON = function($) {
+    var games = [];
+    $('#twoColSpan .tieUpWrap .tieUp table.data').find('tr.rwEven,.rwOdd').each(function(i, r) {
+        var cols = $(r).find('td');
+        if (cols.length > 1) {
+
             var game = {};
             var index = 0;
             var dateColumn = $(cols[index++]);
@@ -122,15 +123,16 @@ var teamLogToJSON = function ($) {
             game.shorthanded_goals_against = $(cols[index++]).text().trim();
             game.shots = $(cols[index++]).text().trim();
             game.shots_against = $(cols[index++]).text().trim();
-           
-      
+
+
             games.push(game);
         }
     });
-    
+
     return games;
 };
-var gamesToJSON = function ($, mode) {
+
+var gamesToJSON = function($, mode) {
     mode = (mode) ? mode : 0;
     var games = [];
     $('#fullPage .contentBlock table.schedTbl tbody').find('tr').each(function(i, r) {
@@ -164,7 +166,7 @@ var getDataFromURL = function(url, parseFunction, outputFile) {
         .then(objToString)
         .then(cheerio.load)
         .then(parseFunction)
-        .then(function (data) {
+        .then(function(data) {
             if (outputFile) {
                 writeToFile(outputFile, data);
             } else {
@@ -174,7 +176,7 @@ var getDataFromURL = function(url, parseFunction, outputFile) {
         .then(null, console.error)
         .done(q.resolve, q.reject);
     return q.promise;
-}
+};
 
 
 module.exports.getTeams = function(outputFile) {
@@ -187,7 +189,7 @@ module.exports.getPlayerGameLog = function(outputFile, playerId) {
     }, outputFile);
 };
 
-module.exports.getTeamLog = function (outputFile, team) {
+module.exports.getTeamLog = function(outputFile, team) {
     if (team) {
         return getDataFromURL(util.format(TEAM_LOG_TOKENIZED_URL, team), function($) { return teamLogToJSON($); }, outputFile);
     } else {
@@ -207,7 +209,7 @@ module.exports.getTeamLog = function (outputFile, team) {
                         return results;
                     }
                 });
-        });                              
+        });
         return teamPromise;
     }
 };
