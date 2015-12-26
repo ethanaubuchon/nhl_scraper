@@ -6,8 +6,8 @@ var Q = require('q');
 
 var GAME_URL = "http://www.nhl.com/ice/schedulebyseason.htm";
 var TEAM_URL = "http://www.nhl.com/ice/teams.htm";
-var PLAYER_LOG_URL_BASE = "http://www.nhl.com/ice/player.htm?view=log&id=";
-var TEAM_LOG_TOKENIZED_URL = "http://%s.nhl.com/club/gamelog.htm";
+var PLAYER_LOG_URL_BASE = "http://www.nhl.com/ice/player.htm?view=log&season=20142015&id=";
+var TEAM_LOG_TOKENIZED_URL = "http://%s.nhl.com/club/gamelog.htm?season=20142015&gameType=2";
 // Fetch Game Modes
 var ALL_GAMES = 0;
 var UNPLAYED_GAMES = 1;
@@ -41,9 +41,40 @@ var teamsToJSON = function ($) {
     return teams;
 };
 
+var populateGoalieFromLog = function($, game, cols) {
+    game.decision = $(cols[1]).text().trim();
+    game.goals_against = $(cols[2]).text().trim();
+    game.shots_against = $(cols[3]).text().trim();
+    game.saves = $(cols[4]).text().trim();
+    game.save_percent = $(cols[5]).text().trim();
+    game.shutout = $(cols[6]).text().trim();
+    game.pim = $(cols[7]).text().trim();
+    game.time_on_ice = $(cols[8]).text().trim();
+    game.even_strength_goals_against = $(cols[9]).text().trim();
+    game.powerplay_goals_against = $(cols[10]).text().trim();
+    game.shorthanded_goals_against = $(cols[11]).text().trim();
+};
+
+var populateSkaterFromLog = function($, game, cols) {
+    game.goals = $(cols[1]).text().trim();
+    game.assists = $(cols[2]).text().trim();
+    game.points = $(cols[3]).text().trim();
+    game.plus_minus = $(cols[4]).text().trim();
+    game.penalty_minutes = $(cols[5]).text().trim();
+    game.powerplay_goals = $(cols[6]).text().trim();
+    game.shorthanded_goals = $(cols[7]).text().trim();
+    game.shots = $(cols[8]).text().trim();
+    game.shooting_percent = $(cols[9]).text().trim();
+    game.shifts = $(cols[10]).text().trim();
+    game.time_on_ice = $(cols[11]).text().trim();
+    game.faceoff_percent = $(cols[12]).text().trim();
+};
 var playerLogToJSON = function ($) {
     var games = [];
-	$('#wideCol .contentBlock table.playerStats').find('tr').each(function (i, r) {
+    var table = $('#wideCol .contentBlock table.playerStats');
+    var firstDataColumnHeader = $($(table.find('thead').find('tr')[0]).find('th')[1]).text().trim();
+
+    table.find('tr').each(function (i, r) {
 		var cols = $(r).find('td');
 		if (cols.length > 1) {
 			
@@ -52,17 +83,11 @@ var playerLogToJSON = function ($) {
 			var teams = $(cols[0]).text().trim().split('\n')[2].split(' @ ');
 			game.away_team = teams[0];
 		    game.home_team = teams[1];
-			game.decision = $(cols[1]).text().trim();
-			game.goals_against = $(cols[2]).text().trim();
-			game.shots_against = $(cols[3]).text().trim();
-			game.saves = $(cols[4]).text().trim();
-			game.save_percent = $(cols[5]).text().trim();
-			game.shutout = $(cols[6]).text().trim();
-			game.pim = $(cols[7]).text().trim();
-			game.time_on_ice = $(cols[8]).text().trim();
-			game.even_strength_goals_against = $(cols[9]).text().trim();
-			game.powerplay_goals_against = $(cols[10]).text().trim();
-			game.shorthanded_goals_against = $(cols[11]).text().trim();
+		    if (firstDataColumnHeader == 'G') {
+		        populateSkaterFromLog($, game, cols);
+		    } else {
+		        populateGoalieFromLog($, game, cols);
+		    }
 		    games.push(game);
 		}
 	});

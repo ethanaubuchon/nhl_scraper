@@ -45,10 +45,10 @@ switch (action) {
 		}
 		break;
 	case 'playerlog':
-		if (outfile && playerId) {
-			scraper.getPlayerGameLog(outfile, playerId);
-		} else  if (playerId){
-			scraper.getPlayerGameLog(null, playerId).then(JSON.stringify).then(console.log);
+		if (outfile && extraParam) {
+			scraper.getPlayerGameLog(outfile, extraParam);
+		} else  if (extraParam){
+			scraper.getPlayerGameLog(null, extraParam).then(JSON.stringify).then(console.log);
 		}
         break;
     case 'teamlog':
