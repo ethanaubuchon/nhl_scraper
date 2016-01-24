@@ -44,7 +44,7 @@ var gamesToJSON = function ($, mode) {
     var games = [];
     $('#fullPage .contentBlock table.schedTbl tbody').find('tr').each(function(i, r) {
         var cols = $(r).find('td');
-        if (cols.length > 1) {
+        if (cols.length >= 5 && $(cols[1]).find('.teamName a')[0]) {
 
             var game = {};
             game.date = $(cols[0]).find('.skedStartDateSite').text().trim();
