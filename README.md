@@ -1,4 +1,4 @@
-# NHL Scraper
+# NHL Scraper (DEPRECATED)
 This is a simple [Node.js](https://nodejs.org/) script used to collect team and schedule data from [nhl.com](nhl.com).
 
 ## Usage
